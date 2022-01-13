@@ -1,7 +1,8 @@
 ---
 layout: page
 title: About
-permalink: /about/
+description: who am I ?
+#permalink: /about/
 ---
 
 Hi,
@@ -13,5 +14,7 @@ Like everyone in this industry, I show off a few certification badges, though it
 
 Most of my current job is terraforming Azure for customers (hence the name of the Blog) and pushing other Hashicorp products, such as Vault and Consul to bring added value. Obviously I pass half as much time writing yaml (azure pipelines, k8s manifest or even ansible playbooks).
 These are the themes you can expect to see on this blog.
+
+Here is the link to my [Linkedin Profile](https://www.linkedin.com/in/{{ site.linkedin_username }}/)
 
 ![AZ 104](https://images.credly.com/size/200x200/images/336eebfc-0ac3-4553-9a67-b402f491f185/azure-administrator-associate-600x600.png) ![AZ 500](https://images.credly.com/size/200x200/images/1ad16b6f-2c71-4a2e-ae74-ec69c4766039/azure-security-engineer-associate600x600.png) ![AZ 700](https://images.credly.com/size/200x200/images/c3a2e51d-7984-48cc-a4cb-88d4e8487037/azure-network-engineer-associate-600x600.png) ![Terraform Associate](https://images.credly.com/size/200x200/images/5b075140-d286-4c8a-9be9-2b87f9e10839/Terraform-Associate-Badge.png) ![Vault Associate](https://images.credly.com/size/200x200/images/75f7f0f5-4d85-4902-a68a-643ec1a00ad3/Vault-Associate-Badge.png) ![MCT](https://images.credly.com/size/200x200/images/a6ea4416-4f34-4a85-bc24-eb3fe32fd241/MCT-Microsoft_Certified_Trainer-600x600.png)

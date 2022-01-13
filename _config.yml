@@ -21,8 +21,7 @@
 title: Terraforming Clouds
 #email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  This is a nerdy blog about Cloud related tech.
-  A youtube channel is in the making, it just takes more time ^_^'
+  Finally blogging nerdy stuff :)
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://nfrappart.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 linkedin_username: nfrappart
@@ -33,6 +32,10 @@ github_username:  nfrappart
 theme: jekyll-theme-cayman
 plugins:
   - jekyll-feed
+
+collections:
+  topics:
+    output: true
 
 # Exclude from processing.
 # The following items will not be processed, by default.
