@@ -21,16 +21,16 @@
 title: Terraforming Clouds
 #email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  This is a nerdy blog about Cloud related tech.
+  A youtube channel is in the making, it just takes more time ^_^'
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: jekyllrb
-github_username:  jekyll
+url: "https://nfrappart.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+linkedin_username: nfrappart
+github_username:  nfrappart
 
 # Build settings
-theme: minima
+# theme: minima
+theme: jekyll-theme-cayman
 plugins:
   - jekyll-feed
 
