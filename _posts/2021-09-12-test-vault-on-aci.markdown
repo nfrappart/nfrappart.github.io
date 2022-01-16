@@ -36,7 +36,7 @@ I wanted for this project to provision everything using terraform. Terraform has
 
 ### - No depedencies
 I had to make a few concessions here. Since I want this project to be self-sufficient, I dont want to have to deal with network dependencies like VPN, domain name, certificates etc. Why? Because, among other thinks, I always want to be able to share that kind of project with the community, and not everyone has a domain name, a wildcard SSL certificate or a let's encrypt bot, etc. etc.
-So I had to accept the fact that I'll use self-signed certificate for TLS, which is definitely NOT okay for production, but we're just testing here. No VPN nor
+So I had to accept the fact that I'll use self-signed certificate for TLS, which is definitely NOT okay for production, but we're just testing here. No VPN no, no VNet, just a container group publicly reachable. Also, I didn't really had the option to go the VNet integration way, as I use managed identity to allow keyvault access, and this feature is available only on public container instances, not private ones.
 
 ## The Architecture
 After gathering enough information here is the target architecture:
@@ -45,5 +45,5 @@ After gathering enough information here is the target architecture:
 
 
 ## Now go have fun !
-Everything describe above is available on a public repository [here](https://github.com/nfrappart/lab-vault-on-aci).
+Everything described above is available on a public repository [here](https://github.com/nfrappart/lab-vault-on-aci).
 I'll be posting other Vautl x Azure Architecture later, such as HA deployement, or Azure AD integration with OIDC auth method.
