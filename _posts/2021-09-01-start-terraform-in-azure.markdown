@@ -7,7 +7,7 @@ tags: terraform azure
 ---
 
 ## Introduction
-If you're here, you probably know what terraform is and want to use it for your Azure Environment. If so, then you know what is the terraform [state](https://www.terraform.io/language/state) file and how vital it is for your infrastructure. It's basically the souce of truth specifying what should exist in the target environment. For more on Terraform and the State, checkout the official documentation, the guys at Hashicorp are doing a great job at keeping it up-to-date and well organized ([Offical Documentation](https://www.terraform.io/intro)).
+If you're here, you probably know what terraform is and want to use it for your Azure Environment. If so, then you know what the terraform [state](https://www.terraform.io/language/state) file is, and how vital it is for your infrastructure. It's basically the souce of truth specifying what should exist in the target environment. For more on Terraform and the State, checkout the official documentation, the guys at Hashicorp are doing a great job at keeping it up-to-date and well organized ([Offical Documentation](https://www.terraform.io/intro)).
 
 Here is a diagram exhibiting state sollicitation during a typical Terraform workflow:
 
@@ -16,17 +16,17 @@ Here is a diagram exhibiting state sollicitation during a typical Terraform work
 The big picture here is that you can go quite far on your own using local state, but at some point you'll need to use a remote backend, which leads to the next question.
 
 ## Why remote backend ?
-Saying the state is the source of truth for your infrastructure lets you grasp it's importance. As such, you'll need to do:
+Saying the state is the source of truth for your infrastructure lets you grasp it's importance. As such, you'll need to:
 - ensure it is highly available
 - have it backed up
 - secure its access
 
-But apart from the above obvious reasons, why would you use a remote backend? Very simple: you probably don't work alone. Since Terraform asks the state about whats is deployed, each time you run it, you need to share it with everyone involving in "coding" your infrastructure. 
+But apart from the obvious reasons above, why would you use a remote backend? Very simple: you probably don't work alone. Since Terraform asks the state about what is deployed, each time you run it, you need to share it with everyone involving in "coding" your infrastructure. 
 That also means you have to manage your code with a Version Control System like git (but that's another topic).
 
 ![Remote Backend in Azure](/pictures/blog-terraformremotebackend.drawio.png)
 
-> So instead of working locally and moving state file to a remote backend later, let's configure Terraform to use remote baclend from the get go! {.tabset}
+> So instead of working locally and moving state file to a remote backend later, let's configure Terraform to use remote backend from the get go!
 
 ## Azurerm remote backend
 Now that we are in an agreement that remote backend is the way to go, let's check out what is available to us.
@@ -36,7 +36,7 @@ Once again, the [Offical Documentation](https://www.terraform.io/language/settin
 How do we make that work?
 Well you'll need a few things: a storage account, obviously, to store your state file, a service principal so that terraform uses it's own identity and not yours, and preferably a keyvault, to store some secrets and avoid having them in clear text in the terraform .tf/.tfvars files.
 
-You will also be required to have adequat roles on your Azure AD Tenant and target Azure Subscription. AzCLI is also required for most of this procedure, although you can do it through the portal. Every command I'll give you here is for *bash shell*. It won't work on powershell.
+You will also be required to have adequat roles on your Azure AD Tenant and target Azure Subscription. Az CLI is also required for most of this procedure, although you can do it through the portal. Every command I'll give you here is for *bash shell*. It won't work on powershell.
 
 
 ```bash
