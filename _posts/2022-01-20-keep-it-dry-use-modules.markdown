@@ -18,9 +18,8 @@ Such module is usually build around 3 tf files (and a readme + licence file) :
 What I call composite cloud resources, are resources composed of multiple smaller resources. A good example of such resource are VMs.
 In the example below, you can see the usual components of a Virtual machines.
 
-<p align="center">
-  <img src="./pictures/blog-vm.drawio.png" />
-</p>
+![Composite Resource](/pictures/blog-vm.drawio.png)
+
 
 If you declare such VM in your ROOT MODULE, you would have to write something like this in your `main.tf` :
 
