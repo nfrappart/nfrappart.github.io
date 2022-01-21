@@ -7,7 +7,7 @@ tags: terraform azure
 ---
 
 ## Introduction
-One of the reasons Infrastructure as Code has become so popular is because of its capacity to deploy ressources repeatedly with consistent and predictable outcome. A very common use case is to have different a subscription per environment. Thus you can provision identical Infrastructure for your applications between Production, Staging and Development, which is invaluable for your deployment.<br>
+One of the reasons Infrastructure as Code has become so popular is because of its capacity to deploy ressources repeatedly with consistent and predictable outcome. A very common use case in Azure, is to have different subscription per environment. Thus you can provision identical Infrastructure for your applications between Production, Staging and Development, which is invaluable for your deployment.<br>
 Your working directory, made of tf and tfvars, in which you will invoke `terraform plan` forms your ROOT MODULE. But you can also create re-usable modules that will allow you to template composite cloud resources.
 Such module is usually build around 3 tf files (and a readme + licence file) : 
 - variables.tf : to define your input variables and default value if needed
