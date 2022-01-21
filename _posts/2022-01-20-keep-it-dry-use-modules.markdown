@@ -15,8 +15,8 @@ Such module is usually build around 3 tf files (and a readme + licence file) :
 - main.tf : where you write your code to provision your resources
 
 ## Resources dependencies in the Cloud
-What I call composite cloud resources, are resources composed of multiple smaller resources. A good example of such resource are VMs.
-In the example below, you can see the usual components of a Virtual machines.
+What I call composite cloud resources, are resources composed of multiple smaller resources. A good example of such resources are VMs.
+In the diagram below, you can see the usual components of an Azure Virtual machines.
 
 ![Composite Resource](/pictures/blog-vm.drawio.png)
 
@@ -138,9 +138,11 @@ resource "azurerm_virtual_machine_extension" "azureadAuth" {
 ```
 
 
-## Do Not Reapeat Yourself
-Obvisously, there is no benefit in copy/pasting all these lines changing only values, to deploy more VMs. Enters modules. You can replace all values you want by variables making your module more or less a template.
-you can find an example here : [Linux VM with Av Zone](https://github.com/nfrappart/azTerraVmLinuxAvZone)
+## Do Not Reapeat Yourself (DRY)
+Obvisously, there is no benefit in copy/pasting all these lines changing only static values, to deploy more VMs. 
+Enter modules! 
+You can substitute all values by variables in the previous configuration, making more or less a template out of it.
+You can find an example here : [Linux VM with Av Zone](https://github.com/nfrappart/azTerraVmLinuxAvZone)
 
 To call the module linked above all you need to do is : 
 - declare the module
@@ -183,7 +185,7 @@ module "vm" {
 }
 ```
 
-You could use `for_each` operator to iterate several time the same module and provision multiple VM with only one module call.
+To complement this DRY approach, you can also use `for_each` operator to iterate several time the same module and provision multiple VM with only one module call. For_each requires a map variable as input.
 
 ```hcl
 # source data for an existing keyvault
@@ -241,13 +243,13 @@ module "vm" {
 }
 ```
 
-With the code above, by just editing the local named `vms`, you can deploy as much vm as you want with only one module call. In a future post, we'll use json as input for locals.
+With the code above, by just editing the local named `vms`, you can deploy as much vm as you want with only one module call. I'll go into further details in a futur post, using json files as data source for locals.
 
 ## Version your modules
-If you pay attention to the `source`attribute, you'll see that it ends with a reference. This reference is a git tag. You could use a commit serial instead it'd work the same.
+If you pay attention to the `source` attribute, you'll see that it ends with a reference. This reference is a git tag. You could use a commit serial instead it'd work the same, since a tag is an commit alias.
 The big give away here is that I highly recommend having one repo per module so you can version them separetely. Then you can have several versions of the same module living in different project without risking a breaking change.
 
 Project A could have : `source = "github.com/nfrappart/azTerraVmLinuxAvZone?ref=v1.0.5"`
 while while project B had : `source = "github.com/nfrappart/azTerraVmLinuxAvZone?ref=v1.0.8"`
 
-Even if v1.0.8 induces breaking change (like removing some resources or changing some naming conventions), it would not break Project A until you change `ref=v1.0.5` by `ref=v1.0.8`.
+Even if v1.0.8 induces breaking change (like removing some resources or changing some naming conventions), it would not break Project A until you change `ref=v1.0.5` by another tag.
