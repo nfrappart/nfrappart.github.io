@@ -19,7 +19,7 @@ What I call composite cloud resources, are resources composed of multiple smalle
 In the example below, you can see the usual components of a Virtual machines.
 
 <p align="center">
-  <img src="/pictures/blog-vm.drawio.png" />
+  <img src="./pictures/blog-vm.drawio.png" />
 </p>
 
 If you declare such VM in your ROOT MODULE, you would have to write something like this in your `main.tf` :
