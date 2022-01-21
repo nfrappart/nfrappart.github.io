@@ -20,7 +20,6 @@ In the example below, you can see the usual components of a Virtual machines.
 
 ![Composite Resource](/pictures/blog-vm.drawio.png)
 
-
 If you declare such VM in your ROOT MODULE, you would have to write something like this in your `main.tf` :
 
 ```hcl
@@ -242,7 +241,7 @@ module "vm" {
 }
 ```
 
-With the code above, by just editing the local named `vms`, you can deploy as much vm as you want with only one module call.
+With the code above, by just editing the local named `vms`, you can deploy as much vm as you want with only one module call. In a future post, we'll use json as input for locals.
 
 ## Version your modules
 If you pay attention to the `source`attribute, you'll see that it ends with a reference. This reference is a git tag. You could use a commit serial instead it'd work the same.
