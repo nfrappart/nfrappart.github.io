@@ -247,7 +247,7 @@ With the code above, by just editing the local named `vms`, you can deploy as mu
 
 ## Version your modules
 If you pay attention to the `source` attribute, you'll see that it ends with a reference. This reference is a git tag. You could use a commit serial instead it'd work the same, since a tag is an commit alias.
-The big give away here is that I highly recommend having one repo per module so you can version them separetely. Then you can have several versions of the same module living in different project without risking a breaking change.
+The big take away here is that I highly recommend having one repo per module so you can version them separetely. Then you can have several versions of the same module living in different project without risking a breaking change.
 
 Project A could have : `source = "github.com/nfrappart/azTerraVmLinuxAvZone?ref=v1.0.5"`
 while while project B had : `source = "github.com/nfrappart/azTerraVmLinuxAvZone?ref=v1.0.8"`
