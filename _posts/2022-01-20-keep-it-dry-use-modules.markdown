@@ -149,6 +149,8 @@ To call the module linked above all you need to do is :
 - indicate the source path
 - initialize variables
 
+You will also need a few resouces readily available before using it, such as a Keyvault, a Vnet with a Subnet, and a Storage Account.
+
 ```hcl
 # source data for an existing keyvault
 data "azurerm_key_vault" "kv" {
@@ -171,7 +173,7 @@ resource "azurerm_resource_group" "rg" {
 
 # call module
 module "vm" {
-  source = "github.com/nfrappart/azTerraVmLinuxAvZone?ref=v1.0.2"
+  source = "github.com/nfrappart/azTerraVmLinuxAvZone?ref=v1.0.8"
   RgName = azurerm_resource_group.rg.name
   RgLocation = azurerm_resource_group.rg.location
   VmEnv = "test"
@@ -182,6 +184,8 @@ module "vm" {
   ImageOffer = "UbuntuServer"
   ImageSku = "18.04-LTS"
   SubnetId = data.azurerm_subnet.subnet.id 
+  RgVmDiag = "rgDiag"
+  VmDiag = "mystoaccount"
 }
 ```
 
