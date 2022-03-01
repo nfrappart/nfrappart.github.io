@@ -438,3 +438,8 @@ resource "azurerm_application_gateway" "appGw" {
 }
 
 ```
+
+That's it folks!
+I hope this helps you with your own project wether you use this code as is for test or customize your own, learning from it.
+
+Cheers!
