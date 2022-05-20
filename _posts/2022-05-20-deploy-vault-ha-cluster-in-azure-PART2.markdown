@@ -7,7 +7,7 @@ tags: vault azure
 ---
 
 ## Introduction
-Last time, we had a high level look at how we can leverage Azure to deploy an HA Vault cluster. We took a detour to detail few tips and feature we need to use in the project.
+Last time, we had a high level look at how we can leverage Azure to deploy a Vault HA cluster. We took a detour to detail few tips and feature we need to use in the project.
 In this part 2, we go to the deployment of the cluster itself, with the addition of preparing the app registration for oidc auth with azure AD.
 However, the auth method itself will b covered in future article (as well as WAF publication and vault features).
 
@@ -484,7 +484,7 @@ sudo systemctl enable vault.service
 ## Setup HA Cluster
 Now that's great but for now, you have 3 standalone Vault Servers, all of them sealed and uninitialized.
 If you didn't change the json file you should have something like that:
-![VMs](/pictures/blog-vault-nodes-screenshot.png)
+![VMs](/pictures/blog-vaultnodesscreenshot.png)
 
 For the following steps there's not workaround manual configuration.
 Reason #1 beaing that Vault will generate its master key and the key shards, as well as the root token.
