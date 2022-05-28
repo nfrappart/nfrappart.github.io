@@ -6,6 +6,8 @@ date:   2022-05-20 14:00:00 +0100
 tags: vault azure
 ---
 
+> UPDATE: 2022-05-28: add auto-unseal with keyvault alternative. Full code should be shared through public github repository in a few weeks.
+
 ## Introduction
 Last time, we had a high level look at how we can leverage Azure to deploy a Vault HA cluster. We took a detour to detail few tips and feature we need to use in the project.
 In this part 2, we go to the deployment of the cluster itself, with the addition of preparing the app registration for oidc auth with azure AD.
@@ -321,6 +323,43 @@ resource "azurerm_key_vault_access_policy" "vaultAccess" {
 
 That's it for the compute. Very simple since we are reusing an already written module.
 
+> 2022-05-28 UPDATE: <br>
+If you decide to go the auto-unseal road, you will have to provision a few more resources, see below.
+
+```bash
+# Create key for Vault
+resource "azurerm_key_vault_key" "vault" {
+  name         = "vaultunseal"
+  key_vault_id = data.azurerm_key_vault.kvCore.id
+  key_type     = "RSA"
+  key_size     = 4096
+
+  key_opts = [
+    "unwrapKey",
+    "wrapKey",
+  ]
+}
+
+# add some permissions to access keys in keyvault
+resource "azurerm_key_vault_access_policy" "vaultAccess" {
+  for_each     = module.vault.vmIdentity
+  key_vault_id = data.azurerm_key_vault.kvCore.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = each.value
+
+  key_permissions = [
+    "Get","List",
+    "WrapKey","UnwrapKey",
+  ]
+
+  secret_permissions = [
+    "Get", "List",
+  ]
+
+  certificate_permissions = [
+    "Get", "
+```
+
 ### Custom script extension
 Since the whole purpose is to automate as much as possible the deployment, we will be using a custom script extension to install and bootstrap vault. There will remain manual task at the end of this demo but we can do a whole lot of thing with terraform.
 
@@ -354,6 +393,43 @@ resource "azurerm_virtual_machine_extension" "bootstrapvault" {
   }
 }
 ```
+
+> 2022-05-28 UPDATE: <br>
+If you decide to go the auto-unseal road, pass a few more variables into the templatefile via the custom script extension.
+
+```bash
+resource "azurerm_virtual_machine_extension" "bootstrapvault" {
+  for_each             = module.vault.vmId
+  name                 = "vaultInstall"
+  virtual_machine_id   = each.value
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+
+  settings = jsonencode({
+    "script" = base64encode(templatefile("bootstrap.sh.tpl", {
+      domain      = var.privDomain,
+      node        = each.key,
+      kv          = data.azurerm_key_vault.kvCore.name,
+      vaultKey    = azurerm_key_vault_key.vault.name,
+      tenantId   = data.azurerm_client_config.current.tenant_id,
+      certificate = var.certname
+      }
+    ))
+  })
+  depends_on = [
+    azurerm_key_vault_access_policy.vaultAccess,
+    azurerm_key_vault_key.vault,
+    module.vault,
+  ]
+  lifecycle {
+    ignore_changes = [
+      settings
+    ]
+  }
+}
+```
+
 
 ### templated bash script
 Once again, we try to stay as "DRY" as possible. So instead of writing a script for each vm, we use the native terraform function templatefile() with some variables (see `settings` bloc in previous section).
@@ -479,6 +555,35 @@ EOT
 sudo systemctl daemon-reload
 sudo systemctl start vault.service
 sudo systemctl enable vault.service
+```
+
+> 2022-05-28 UPDATE: <br>
+If you decide to go the auto-unseal road, you will have to amend the above bootstrap script. Just modify the `config.hcl` creation part with the folowing.
+
+```bash
+sudo tee -a /etc/vault.d/config.hcl > /dev/null <<EOT
+listener "tcp" {
+address = "0.0.0.0:8200"
+cluster_address  = "0.0.0.0:8201"
+tls_cert_file = "/vault/config/vault.cer"
+tls_key_file = "/vault/config/vault.key"
+}
+storage "raft" {
+path = "/vault/raft"
+node_id = "${node}"
+}
+api_addr = "https://vault.${domain}:8200"
+cluster_addr = "https://${node}.${domain}:8201"
+
+seal "azurekeyvault" {
+  tenant_id      = "${tenantId}"
+  vault_name     = "${kv}"
+  key_name       = "${vaultKey}"
+}
+
+ui = true
+disable_mlock = true
+EOT
 ```
 
 ## Setup HA Cluster
