@@ -6,17 +6,30 @@ date:   2022-07-08 14:00:00 +0100
 tags: terraform azure
 ---
 
+## Table of Content
+- [Introduction](#1--introduction)
+- [Objective](#2--the-objective)
+- [Target architecture](#3--the-target-architecture)
+- [What are we deploying](#4--what-are-we-deploying)
+- [About L4-L7 network security](#5--about-l4-l7-network-security)
+- [Why are DNS zones important?](#6--why-are-dns-zones-important)
+- [How to use the module](#7--how-to-use-the-module)
+- [Explaining configuration file](#8--explaining-configuration-file-networksjson)
+- [Conclusion](#9--conclusion)
 
-## Introduction
+
+## 1- Introduction
 You all know the 3 basic service levels a public cloud provide: SaaS, PaaS and IaaS. Let's put aside the first one and focus on the two others.<br> 
-When you deploy an application in Azure, you can choose to use abstracted infrastructure and manage only your code and its deployment (PaaS) or have a finer control and manage the (virtual) infrastructure yourself (IaaS). Whatever the choice, at some point, you will need to use private network (as in rfc1918), which inevitably leads you to Azure Virtual Networks (aka VNets). The good people at Microsoft have a plethora of documentation, which is good and bad, as it can leave you perplex as to which way to go regarding network architecture.
+When you deploy an application in Azure, you can choose to use abstracted infrastructure and manage only your code and its deployment (PaaS) or have a finer control and manage the (virtual) infrastructure yourself (IaaS). Whatever the choice, at some point, you will need to use private network (as in rfc1918), which inevitably leads you to Azure Virtual Networks (aka VNets). The good people at Microsoft have a plethora of documentation, which is good and bad, as it can leave you perplex as to which way to go regarding network architecture.<br>
 In this post, we will discuss the `Hub and Spoke` architecture.
 
-## The Objective
+> If you want to go directly to the terraform and IaC stuff, skip all the way to **[Section 9](#7--how-to-use-the-module)**.
+
+## 2- The Objective
 The idea is to give you the means to jump start your azure deployment, with some terraform code. Some may think `Landing Zone` but I prefer the term `Subscription Setup` as, to me at least, the landing zone idea includes Governance (with roles, groups, policies etc.) which I don't cover in this project. I find governance to be too specific for each customer, so defintely no `one size fits all` there.
 > Full disclaimer here, what you're about to read is geared towards small businesses (in the 100-600 people range). Bigger environment will probably present the usual organizational challenge of having to deal with several teams before validating a target architecture. In which case, the notion of `Landing Zone` really start to make sense.
 
-## The Target Architecture
+## 3- The Target Architecture
 So now that we are clear on the objective, let's take a look at the architecture. 
 We will be going for the following network segmentation:
 - Hub VNet (for connectivity and shared services)
@@ -40,7 +53,7 @@ here goes (click on picture and zoom for larger view):
 The "transparent" subnets are there for demonstration sake, to show you the kind of services it would make sense to host in your Hub Vnet. But you can deploy them by filling the json accordingly (more on that later).
 The Azure Bastion, Azure Firewall and Virtual Network Gateway however, are included in the project and can be deploy by a simple boolean variable.
 
-## What are we deploying ?!
+## 4- What are we deploying ?!
 As you can see, we are deploying quite a few ressources. Fortunately, most of them will (almost) not cost you a penny until there's some actual traffic. Of course, this excludes Bastion Hosts, and any type of Gateway, since, like any compute resource, they generate cost.
 
 ### *Virtual Networks*
@@ -112,7 +125,7 @@ Finally, you have the option to deploy an azure firewall, in which case, there i
 However, this terraform project does not include any Azure Firewall configuration, apart from its deployment. The reason is to limit terraform plan blast radius. I'll talk about that in a future article, but the idea is to avoid having huge terraform states which are long to process and impact too many ressources at each run (smaller run means smaller risks).
 More on Azure Firewall [here](https://docs.microsoft.com/en-us/azure/firewall/).
 
-## About L4-L7 network security
+## 5- About L4-L7 network security
 L4 filtering is left to the network security groups. They are declared in the json, in each subnet section. There's a default rule with id 999 in the json, that allow all east-west traffic within each VNet.
 
 You will have to sort out your required flow and define your rules accordingly. NSG will allow the use of service tag (built-in ones from azure such as "Internet" or "VirtualNetwork"), cidr blocks, Application Security Groups or "Any".
@@ -120,7 +133,7 @@ You will have to sort out your required flow and define your rules accordingly. 
 If any L7 filtering or scanning is required, you will have to rely on Azure Firewall, Application Gateway or other NVA (Network Virtual Appliances). For example, to use rules based on FQDN, you need Azure Firewall or an NVA, as NSG won't provide such flexibility. 
 > I stronly recommand using NSG for east/west filtering and AzureFirewall/NVA for north/south control (or NSG for both). You could theoretically  forward intra-vnet traffic to your firewall in the Hub VNet but the network cost, in both performance and money, is a deal breaker.
 
-## Why are DNS zones important ?
+## 6- Why are DNS zones important ?
 DNS private Zones are relatively simple as long as you stay in a "full" cloud environment. But if you need network hybridation, that's another story (for another post ;)).<br>
 
 This project will make you deploy a private zone, but you will soon need more than one for your environments. When you will need/want to leverage private endpoints (to better control access to your managed services), you will end up with private zones like `privatelink.<managed_service_name.>.<some_microsoft_domain_name>`. This is how Azure returns private IP for a managed service instead of the public one (more on that in the [official documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns)). So it's good pratice to get familiar with them from the get go.<br>
@@ -128,7 +141,7 @@ This project will make you deploy a private zone, but you will soon need more th
 Private DNS Zones are subscription bound, meaning, you could theoretically have the same zone over and over on all your subscriptions, which is obviously bad as workload in each subscription would only get DNS response for the records in its own private zone. That is why the Hub & Spoke model suggest to use the "Hub" for your shared resources. Thus, you share the same private zone for all your connected workloads. This behavior is achieved by [dns virtual network links](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links).
 
 
-## How to use the module:
+## 7- How to use the module
 Below is a tf file sample. But that's not all. The module requires you to provide the parameters in a json file named `networks.json` (see next section)
 
 ```hcl
@@ -173,7 +186,7 @@ output "GatewaySubnet" {
 
 ```
 
-## Explaining Configuration file: networks.json
+## 8- Explaining Configuration file: networks.json
 The json file has a predefined structure like below. A full example is provided in the next section.
 > the `networks.json` file must be in the same directory as the tf file calling the module.
 
@@ -345,7 +358,7 @@ The `subnetAddressPrefix`is obviously required as your CIDR bloc for said subnet
 
 **OBVIOUSLY** to use this, you need to set the input variable `deployAzureFirewall` to `true` and provide an `AzureFirewallSubnet` in you subnet bloc (preferably in your hub VNet).
 
-## Conclusion
+## 9- Conclusion
 To wrap up this post, let's take seat back and recap what we discussed:
 - We can setup the core services and network architecture using the terraform project presented here. It's available on my [github](https://github.com/nfrappart/azTerraSubscriptionSetup)
 - We separate code and configuration between `.tf` files and `.json` file
@@ -356,7 +369,7 @@ To wrap up this post, let's take seat back and recap what we discussed:
 
 
 
-## Example with hub and one spoke:
+## Example with hub and one spoke
 ```json
 {
   "hub":{
