@@ -6,18 +6,27 @@ date:   2022-05-20 14:00:00 +0100
 tags: vault azure
 ---
 
-> UPDATE: 2022-05-28: add auto-unseal with keyvault alternative. Full code should be shared through public github repository in a few weeks.
+> UPDATES: <br>
+-2022-05-28: add auto-unseal with keyvault alternative. Full code should be shared through public github repository in a few weeks. <br>
+-2022-07-22: add DNS config to use cluster without application gateway (see [Conclusion](#5--conclusion)). Also, removed the Azure AD App Registration part to publish it back with Azure AD auth (oidc) future article.
 
-## Introduction
+## Table of Content
+- [Introduction](#1--introduction)
+- [Prerequisites](#2--prerequisites)
+- [The TF Code](#3--the-main-infrastructure-code)
+- [Setup HA](#4--setup-ha-cluster)
+- [Conclusion](#5--conclusion)
+
+
+## 1- Introduction
 Last time, we had a high level look at how we can leverage Azure to deploy a Vault HA cluster. We took a detour to detail few tips and feature we need to use in the project.
-In this part 2, we go to the deployment of the cluster itself, with the addition of preparing the app registration for oidc auth with azure AD.
-However, the auth method itself will b covered in future article (as well as WAF publication and vault features).
+In this part 2, we go to the deployment of the cluster itself.
 
 Below is what we aim for:
 
 ![Vault](/pictures/blog-vaultazureintegration.drawio.png)
 
-## Prerequisites
+## 2- Prerequisites
 To be able to go through this demo, you need to have a few things:
 - an Azure AD tenant with global admin access (actually, Application Administror may be enough)
 - an Azure subscription with owner role (to be able to delegate access to resources)
@@ -160,7 +169,7 @@ As you ca see, we spread the 3 nodes on different availability zones to ensure b
 }
 ```
 
-## The main Infrastructure Code
+## 3- The main Infrastructure Code
 
 Now that we have our input parameters, we can work on the `main.tf` file which will provide us with the deployment plan.
 
@@ -170,116 +179,12 @@ First, we have a few data sources to load.
 ```bash
 
 data "azurerm_client_config" "current" {}
-data "azuread_client_config" "current" {}
-data "azuread_application_published_app_ids" "well_known" {}
 data "azurerm_key_vault" "kvCore" {
   name                = var.keyVault
   resource_group_name = var.keyVaultRg
 }
 
 ```
-
-### Azure AD App Registration
-Then, we provision the azure AD app registration for future oidc authentication in the application (in the next article).
-Take the time to read the comments as they are here to help you understand what's going on in the code bloc
-
-```bash
-# Thansk to the datasource we can create a ressource containing all the ids in the Microsoft Graph
-resource "azuread_service_principal" "msgraph" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
-  use_existing   = true
-}
-
-# Since terraform doesn't generate uuid on its own for app roles we use a random_uuid resource
-resource "random_uuid" "appRole" {
-  for_each = toset(var.appRoles)
-}
-
-# Below is the app registration creation
-resource "azuread_application" "vault" {
-  display_name    = "vault"
-  #logo_image       = filebase64("./vault_logo.png") #if you want a logo in your azure ad app reg list
-  owners           = [data.azuread_client_config.current.object_id]
-  sign_in_audience = "AzureADMyOrg"
-
-  # we start with only 2 roles. They will not be used until we setup vault for oidc authentication
-  app_role {
-    allowed_member_types = ["User"]
-    description          = "Vault admin are authorized to setup the application"
-    display_name         = "Admin"
-    enabled              = true
-    id                   = random_uuid.appRole["Admin"].id
-    value                = "admin"
-  }
-
-  app_role {
-    allowed_member_types = ["User"]
-    description          = "User can consume kvv2 secrets"
-    display_name         = "User"
-    enabled              = true
-    id                   = random_uuid.appRole["User"].id
-    value                = "user"
-  }
-
-  # Since we want to use app roles instead of security group, we must specify the claim
-  group_membership_claims = ["ApplicationGroup"]
-
-  required_resource_access {
-    # Microsoft graph api id
-    resource_app_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
-    resource_access {
-      # User Read scope id
-      id = azuread_service_principal.msgraph.oauth2_permission_scope_ids["User.Read"]
-      # `scope` for delegated authorization, `role` for application authorization
-      type = "Scope"
-    }
-  }
-
-  # the settings below assume that the oidc auth method will be mounted on default path in vault (auth/oidc)
-  web {
-    homepage_url = "https://vault.${var.privDomain}:8200"
-    #logout_url    = "https://app.example.net/logout"
-    redirect_uris = [
-      "http://localhost:8250/oidc/callback",
-      "https://vault.${var.privDomain}:8250/oidc/callback",
-      "https://vault.${var.privDomain}:8200/ui/vault/auth/oidc/oidc/callback"
-    ]
-
-    implicit_grant {
-      access_token_issuance_enabled = true
-      id_token_issuance_enabled     = true
-    }
-  }
-}
-
-resource "azuread_application_password" "vault" {
-  application_object_id = azuread_application.vault.object_id
-}
-
-# Create service principal for application
-resource "azuread_service_principal" "vault" {
-  application_id               = azuread_application.vault.application_id
-  app_role_assignment_required = false
-  owners                       = [data.azuread_client_config.current.object_id]
-}
-
-# Grant admin consent for delegated permission
-resource "azuread_service_principal_delegated_permission_grant" "vault" {
-  service_principal_object_id          = azuread_service_principal.vault.object_id
-  resource_service_principal_object_id = azuread_service_principal.msgraph.object_id
-  claim_values                         = ["User.Read"]
-}
-
-# Add application/client secret to your keyvault for use later
-resource "azurerm_key_vault_secret" "vault" {
-  name         = "vault-client-secret"
-  value        = azuread_application_password.vault.value
-  key_vault_id = data.azurerm_key_vault.kvCore.id
-}
-```
-
-The azure AD configuration ends here. We will not use it this time, but it's important to include it in IaC for future use. Also remember that by default application secrets are valid for 24 months which means that you will need some kind of renew workflow later on.
-
 
 ### Provision the VMs for the cluster
 
@@ -586,7 +491,7 @@ disable_mlock = true
 EOT
 ```
 
-## Setup HA Cluster
+## 4- Setup HA Cluster
 Now that's great but for now, you have 3 standalone Vault Servers, all of them sealed and uninitialized.
 If you didn't change the json file you should have something like that:
 ![VMs](/pictures/blog-vaultnodesscreenshot.png)
@@ -725,9 +630,20 @@ localadm@vault2:~$
 
 **Repeat these steps for node #3 and you're done :)**
 
-## Conclusion
-You now have a zone redundant Vault HA cluster. The missing part is the Azure Application Gateway to act as load balancer. We will see this in the next post. However, if you want, you can setup a DNS record `vault.priv.mydomain.com` in your Azure Private DNS zone with all 3 nodes IP and use DNS round robin instead.
+## 5- Conclusion
+You now have a zone redundant Vault HA cluster. The missing part is the Azure Application Gateway to act as load balancer. We will see this in another post. However, if you want, you can setup a DNS record `vault.priv.mydomain.com` in your Azure Private DNS zone with all 3 nodes IP and use DNS round robin instead.*
 Actually, Vault is designed to work like that. However this implies that the nodes are directly accessible from the client (either user or machine). If your network is segmented in a way that your vault subnet can't be reached directly without a loadbalancer, then DNS round robin will be of no use to you.
 Check the [official documentation](https://www.vaultproject.io/docs/concepts/ha).
 
-This is getting exciting :). After putting the frontend access with either LB, WAF or DNS RR, we will be able to start playing with vault internal. We will show you oidc auth method to leverage AzureAD for user access, but also azure auth to authenticate VM with their managed identity, and of course use the secrets engine to help you understand how to use Vault to secure your workload and application delivery.
+This is getting exciting :). Next time, we will be able to start playing with vault internal. We will show you oidc auth method to leverage AzureAD for user access, but also azure auth to authenticate VM with their managed identity, and of course use the secrets engine to help you understand how to use Vault to secure your workload and application delivery.
+
+*If you want to use DNS round robin, just add the following resource to your code.
+```bash
+resource "azurerm_private_dns_a_record" "vault" {
+  name                = "vault"
+  zone_name           = data.azurerm_private_dns_zone.dns.name
+  resource_group_name = data.azurerm_private_dns_zone.dns.resource_group_name
+  ttl                 = 300
+  records             = [ for k,v in module.vault.vmName : v ]
+}
+```
