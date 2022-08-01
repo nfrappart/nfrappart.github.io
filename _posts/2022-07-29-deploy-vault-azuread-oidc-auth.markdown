@@ -317,7 +317,7 @@ resource "vault_identity_group_alias" "groupAlias" {
 
 ```
 
-## 5-Conclustion
+## 5-Conclusion
 That's it folks!
 So to summarize, to be able to log into vault with your azure AD account there is quite a bit of setup on the Azure side (azure AD app reg, azure ad sp, azure ad app secret, azure ad app roles...). Then, you have to create the auth backend, at least one role, and rely on external groups and group aliases to pseudo-sync azure AD app roles with Vault groups.
 
