@@ -34,7 +34,7 @@ The presented solution has been designed with clustering in mind. You'll find a 
 
 ## 2- The components
 If you already have the required resources, go directly to 3-
-### Azure DNS
+### 2-a Azure DNS
 Azure DNS is a managed service to host your DNS Zone. Very straight forward. It's basically the same service your registrar provide you with, to setup your DNS records. 
 
 To use Azure DNS for your domain, you will need to delegate the domain management to the DNS servers provided by azure. This step is specific to your registrar, so I won't go into detail. But if you're here, I bet you know how to do this (otherwise your registrar should have proper documentation).
@@ -81,7 +81,7 @@ The Api will return you a json with your newly created zone. The `nameServers` a
 }
 ```
 
-### Azure Keyvault
+### 2-b Azure Keyvault
 If you're not familiar, Keyvault is Azure's secret management service (passwords, keys, certificates etc.).
 We will use it to store the generated certificates. It has a convinient versioning feature, as well as deletion protection, that makes it an ideal candidate for this use.
 
@@ -122,12 +122,12 @@ The output includes credentials that you must protect. Be sure that you do not i
 ```
 > Be careful with RBAC and IAM and as possible, always try to apply the least privilege strategy. The Above examples are good for testing but may not be acceptable for production environments.
 
-### Acme.sh
+### 2-c Acme.sh
 Acme.sh is an ACME protocol client in shell language for bash, dash and sh.
 Everything you need to know is here: [acme.sh](https://github.com/acmesh-official/acme.sh).<br>
 The base usage is an http/https challenge. But you probably don't (or don't want to) have compute running for your ACME challenge. The script includes a manual validation using DNS verification instead long running service using letsencrypt API for http/https/dns automatic renewal. That's the method we are going to leverage, but automated (scheduled) using azure pipeline. Thus we don't keep compute running.
 
-### Azure Devops (pipelines)
+### 2-d Azure Devops (pipelines)
 Azure Devops is a suite of managed services for application development. It includes work items, boards, wiki, but also git repositories and pipelines.<br>
 We will be using the latter. Azure pipeline allow you to run tasks and jobs automatically based on specific triggers (like PR, commits, schedules, etc.).
 
@@ -136,7 +136,7 @@ More about Azure Pipelines [here](https://learn.microsoft.com/en-us/azure/devops
 If you don't already have an Azure Devops organization, go create one for free (5 basic licenses included), and [create a project](https://learn.microsoft.com/en-us/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=browser).
 
 ## 3- Azure pipeline
-### Azure Pipeline Definition file (yaml)
+### 3-a Azure Pipeline Definition file (yaml)
 Azure Build pipelines rely on yaml definition files.
 Push the following file in a repository in your azure devops project, then go to next section to create the pipeline itself.
 
@@ -223,7 +223,7 @@ steps:
 
 ```
 
-### Azure Pipeline Setup 
+### 3-b Azure Pipeline Setup 
 Now that your definition file is pushed in your repository, you can go to Azure Devops to finalize the pipeline.
 
 #### Create a variable group
@@ -269,7 +269,7 @@ then choose `Existing Azure Pipelines YAML file` <br>
 In the next window, select the yaml file to be used in the drop down menu <br>
 ![pipeline](/pictures/blog-pipeline5file.png)
 
-Don't touch it yet, just select `Save` in the `Run` drop down menu.
+Don't touch it yet, just select `Save` in the `Run` drop down menu. <br>
 ![pipeline](/pictures/blog-pipeline6save.png)
 
 Your pipeline has been created and with the scheduled block, it will try running automatically according to the cron strategy configured.
