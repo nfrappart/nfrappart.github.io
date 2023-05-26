@@ -246,7 +246,7 @@ variables:
 Click on `Library` <br>
 ![vrariable group](/pictures/blog-pipelinelibrary1.png)
 
-Click on `+ Variable group` <be>
+Click on `+ Variable group` <br>
 ![vrariable group](/pictures/blog-pipelinelibrary2.png)
 
 Name it `static` then create the following two environment variables. Now is the time to paste the password that was output when you created the service princiap in [2-](#azure-keyvault). Be careful to use the same names that are defined in the shell script in the yaml file (`AZUREDNS_APPID`and `AZUREDNS_CLIENTSECRET`).<br>
