@@ -66,46 +66,7 @@ will require to manually create a long lived service account token with the perm
 
 Back to this staged process we were talking about here is how it will articulate.
 
-:::mermaid
-flowchart TD
-  subgraph azure
-  direction LR
-    cluster[Provision AKS with OIDC Issuer]-->
-    values1{{export:<br>- issuer URL<br>- CA Cert<br>- host}}
-  end
-  subgraph sa_token
-  direction LR
-    token[Create SA Token]-->
-    values2{{export:<br>- SA JWT}}
-  end
-  subgraph auth_config
-  direction RL
-    values3{{- issuer URL<br>- CA Cert<br>- host<br>- SA JWT}}-->
-    vaultconfig[setup auth config]
-  end
-
-  azure-->
-  sa[Create Service Account]-->
-  sa_token-->
-  role[Create JWT Reviewer Role Binding for SA]-->
-  vaultpolicy[create policy/policies for injector]-->
-  vaultauth[enable kubernetes auth]-->
-  auth_config-->
-  vaultrole[create auth role for injector SA]
-
-classDef azure fill:#007FFF,stroke:none
-classDef k8s fill:#0f3074,stroke:none
-classDef hide_k8s fill:#0f3074,stroke:none,color:#0f3074
-classDef vault fill:#FFEC6E,stroke:none,color:black
-classDef hide_vault fill:#FFEC6E,stroke:none,color:#FFEC6E
-
-class azure azure
-class sa,role k8s
-class sa_token hide_k8s
-class vaultpolicy,vaultauth,vaultrole vault
-class auth_config hide_vault
-
-:::
+![steps](/pictures/blog-kubernetesauth.drawio.png)
 <br>
 
 > *About the token reviewer JWT:*<br>
