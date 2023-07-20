@@ -53,8 +53,6 @@ There is a neat diagram that explains the workflow in the hashicorp tutorials (s
 
 ![vaultk8s](/pictures/vaultk8s.png)
 
-Step 1 is what we will be doing below with terraform.
-
 ## 3-c key settings
 As always, when configuring applications/platforms to work together, it's a multi stage process which require some key settings. Again, the above mentioned tutorial provides what we need, but we will transpose with their AKS counterparts.
 - *kubernetes host:* <br>
