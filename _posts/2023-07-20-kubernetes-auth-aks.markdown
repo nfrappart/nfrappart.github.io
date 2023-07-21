@@ -53,9 +53,10 @@ How does it work?<br>
 Once again, with JWT, the principles are similar with what we see elsewhere. Kubernetes uses *Service Accounts* as a mean to provide identities to pods. Then when a pod is deployed with one of these idendities assigned, a service account Token is created and mounted on a projected volume at `/var/run/secrets/kubernetes.io/serviceaccount`. Note that these tokens are JWT Token signed by the cluster which is how their authenticity can be verified. 
 
 There is a neat diagram that explains the workflow in the hashicorp tutorials (see full tutorial [here](https://developer.hashicorp.com/vault/tutorials/kubernetes/agent-kubernetes))
-<center>
-![vaultk8s](/pictures/vaultk8s.png)
-</center>
+
+<p align="center">
+  <img src="/pictures/vaultk8s.png" />
+</p>
 
 ## 3-c key settings
 As always, when configuring applications/platforms to work together, it's a multi stage process (because of dependencies) which require some key settings. Again, the above mentioned tutorial provides what we need, but we will transpose with their AKS counterparts.
@@ -69,10 +70,10 @@ will require to activate oidc issuer on the cluster and retrieve the url from da
 will require to manually create a long lived service account token with the permission to review tokens
 
 Back to this staged process we were talking about here is how it will articulate:
-<center>
-![steps](/pictures/blog-kubernetesauth.drawio.png)
-</center>
-<br>
+
+<p align="center">
+  <img src="/pictures/blog-kubernetesauth.drawio.png" />
+</p>
 
 First stage is about provisiniong resources on Azure, second stage is within Kubernetes (AKS), third and last is setting up Vault.<br>
 After initial setup, to use the solution, it will be configuration back and forth between K8s and Vault.
