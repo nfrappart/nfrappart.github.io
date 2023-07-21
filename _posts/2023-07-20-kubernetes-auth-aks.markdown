@@ -28,7 +28,7 @@ A couple month ago, I made a poll on linkedin to decide which topic I should cov
 
 Since Azure is my playing field, we're going to showcase how to implement it for an AKS cluster. As for the use case, nothing special here, we will have a look at the injector. I'm not very interested in the csi driver because of its limitations, and I haven't tried the recentely released vault Operator. That doesn't leave me with much choice, does it? ^_^'
 
-> We could use the kubernetes auth method for a specific workload, but since I don't have an app lying around to play with, I'm going to use vault injector with the Helm Chart.
+> We could use the kubernetes auth method with a vault aware application, but since I don't have such app lying around to play with, I'm going to use vault injector with the Helm Chart.
 
 # 2- Requirements
 For this little project, we need 2 things:
@@ -37,24 +37,28 @@ For this little project, we need 2 things:
 
 There's no question about the necessity for a kubernetes cluster since the whole purpose is to showcase kubernetes auth method. However I'm a bit picky when it comes to hosting security oriented solutions like vault. Same with monitoring. IMHO, you should never host such tools in the same infra as your production workloads.
 
+> If you plan using kubernetes secret engine it's a no brainer, you have to use an external vault cluster.
+
 # 3- Kubernetes auth method
 Now that we've clarified all the above, we can talk about the topic.
 First off, there are some considerations regarding zero trust when using kubernetes auth with vault. Let me explain.
 
 ## 3-a About Zero Trust
-When you adopt (or try to) zero trust principals, you authenticate and authorize everything and assume breach. However, like so many cloud native identity management, this authentication method relies on oidc/jwt. It assumes that your kubernetes cluster, aks in our case, is a trusted identity provider. Just like when you used azure ad with oidc auth for vault, azure as is a trusted identity provider. See the contradiction? There's nothing inherently wrong about this approach, but it has to be said, so you take proper countermeasures. Basically, the risks shifts from the workload itself to the RBAC and IAM of the kubernetes cluster.
+When you adopt (or try to) zero trust principals, you authenticate and authorize everything and assume breach. However, like so many cloud native identity management, this authentication method relies on oidc/jwt. It assumes that your kubernetes cluster, aks in our case, is a *trusted* identity provider. Just like when you used Azure AD (now called Entra ID) with oidc auth for vault, Azure AD is a *trusted* identity provider. I always find it interesting to buzz about *zero trust* and yet call external system *trusted*. ^^  <br>
+There's nothing inherently wrong about this approach, but it has to be said, so you take proper countermeasures. Basically, the risks shifts from the workload itself to the RBAC and IAM of the kubernetes cluster.
 
 
 ## 3-b It's all JWT again!
 How does it work?<br>
-Once again, with JWT, the principles are similar with what we see elsewhere. Kubernetes uses service accounts as a mean to provide identities to pods. Then when a pod is deployed with one of these idendities assigned, a service account Token is created and mounted on a projected volume at `/var/run/secrets/kubernetes.io/serviceaccount`. Note that these tokens are JWT Token signed by the cluster which is how their authenticity can be verified. 
+Once again, with JWT, the principles are similar with what we see elsewhere. Kubernetes uses *Service Accounts* as a mean to provide identities to pods. Then when a pod is deployed with one of these idendities assigned, a service account Token is created and mounted on a projected volume at `/var/run/secrets/kubernetes.io/serviceaccount`. Note that these tokens are JWT Token signed by the cluster which is how their authenticity can be verified. 
 
 There is a neat diagram that explains the workflow in the hashicorp tutorials (see full tutorial [here](https://developer.hashicorp.com/vault/tutorials/kubernetes/agent-kubernetes))
-
+<center>
 ![vaultk8s](/pictures/vaultk8s.png)
+</center>
 
 ## 3-c key settings
-As always, when configuring applications/platforms to work together, it's a multi stage process which require some key settings. Again, the above mentioned tutorial provides what we need, but we will transpose with their AKS counterparts.
+As always, when configuring applications/platforms to work together, it's a multi stage process (because of dependencies) which require some key settings. Again, the above mentioned tutorial provides what we need, but we will transpose with their AKS counterparts.
 - *kubernetes host:* <br>
 can be referenced from your aks cluster terraform resource or data source
 - *kubernetes CA certificate:* <br>
@@ -64,23 +68,27 @@ will require to activate oidc issuer on the cluster and retrieve the url from da
 - *token reviewer JWT:* <br>
 will require to manually create a long lived service account token with the permission to review tokens
 
-Back to this staged process we were talking about here is how it will articulate.
-
+Back to this staged process we were talking about here is how it will articulate:
+<center>
 ![steps](/pictures/blog-kubernetesauth.drawio.png)
+</center>
 <br>
+
+First stage is about provisiniong resources on Azure, second stage is within Kubernetes (AKS), third and last is setting up Vault.<br>
+After initial setup, to use the solution, it will be configuration back and forth between K8s and Vault.
 
 > *About the token reviewer JWT:*<br>
 In the official documentation and tutorials, you are guided to use the Service Account created for the injector (default value set to `true` in the helm chart), and retrieve its token to use it as kubernetes token reviewer in the auth method config. However you can use any other SA Token for the auth method, as long as it has the proper role binding. That's what is described above. It's easier to keep everything in terraform doing so.
 
 # 4- Helm chart
-Now, let's address the use case: vault injector in kubernetes.<br>
+Now, let's address the use case: *Vault Injector* in kubernetes.<br>
 If you're not familiar with the injector, the idea is pretty simple. You deploy the injector in your kubernetes cluster which allow you to add a vault agent sidecar in your pods, based on annotations. Then you can inject secrets in your pods, depending on what your agent is authorized to retrieve (i.e what the kubernetes auth method role, assigned to your agent, is allowed to access).<br>
 The behind the scenes is not quite as simple though, relying on a mutation webhook to deploy the agent, then using an init container to authenticate with vault, before starting the vault agent sidecar with its vault token, and finally starting your containers and mounting retrieved secrets in a file. If it sounds like a mess, the beauty of it is in the fact that you can leverage vault without your app being aware. Which facilitate transitionning to vault without touching the code.
 More on the injector [here](https://developer.hashicorp.com/vault/docs/platform/k8s/injector).
 
 Anyway. The helm chart.<br>
-To setup and deploy the injector, we usually rely on the helm chart, provided by Hashicorp. There is a handful of options to suits your specific needs, and in our project, there is one in particular: the option to use an external Vault Cluster.<br>
-You see, the chart is made to deploy the whole solution, vault, the injector, etc. But as I stated in [2- Requirements](#2--requirements), having your secret management inside your cluster may not be the smartest idea. You could however have it in a separate kubernetes cluster, if you prefer it over VMs. Anyway, you git the idea, I recommend separation of duties and have your vault clusters running on a different infra.
+To setup and deploy the injector, we usually rely on the helm chart, provided by Hashicorp. There is a handful of options to suits your specific needs, and in our project, there is one in particular: the option to use an *external Vault Cluster*.<br>
+You see, the chart is made to deploy the whole solution, vault, the injector, etc. But as I stated in [2- Requirements](#2--requirements), having your secret management inside your cluster may not be the smartest idea. You could however have it in a separate kubernetes cluster, if you prefer it over VMs. But, you git the idea. I recommend separation of duties and have your vault clusters running on a different infra.
 
 Below is the list of the charts values we'll be using:
 - global.enabled: <br>
@@ -107,14 +115,17 @@ create a service account for injector (will be set to `false`)
 annotation for node selection
 
 
-
 # 5- Let's jam!
 ## 5-a Prep Vault
-Before we begin with all the k8s stuff and helm charts and all, we have to prep vault with some simple tasks: enable a secret engine (kv) and create a policy for our workload.
+Before we begin with all the K8s stuff and helm charts and all, we have to prep vault with some simple tasks: 
+- enable a secret engine (kv) 
+and 
+- create a policy for our workload.
 
 > Quick reminder, when setting up an authentication method, you create roles to which policies are attached. Then when authenticating, a client can claim a role and get the associated policies.
 
-For our demo, I'll be using a busybox. As I said, I don't have fancy application with front and back and whatnot. So first things first, let's create a policy with a `busybox.hcl` definition file
+For our demo, I'll be using a busybox. <br>
+As I said, I don't have fancy vault aware application with front and back and whatnot. So first things first, let's create a policy with a `busybox.hcl` definition file.
 
 ```hcl
 path "secret/*" {
@@ -159,7 +170,7 @@ oh, one last thing, you have to create at least one secret so we can retrieve it
 vault kv put -mount=secret devops token=pat
 ```
 
-you will get a response similar as:
+You will get a response similar as:
 
 ```bash
 === Secret Path ===
@@ -201,7 +212,7 @@ token    pat
 ```
 
 ## 5-b Provision AKS Cluster
-Now because all of this was to show how to use kubernetes auth method, we need a k8s cluster. You can use my public module for that: [ryzhom/aks/azurerm](https://registry.terraform.io/modules/ryzhom/aks/azurerm/latest)
+Now because all of this was to show how to use kubernetes auth method, we need a K8s cluster. You can use my public module for that: [ryzhom/aks/azurerm](https://registry.terraform.io/modules/ryzhom/aks/azurerm/latest)
 
 here is an example usage:
 
@@ -251,10 +262,10 @@ This module uses Azure CNI overlay, but you can bring your own aks cluster for t
 
 ## 5-c Configure auth method and deploy injector
 Finally getting to the core of the topic.
-First, you will need to setup the provider, and for that we need to retrieve information from the cluster using data sources.
+First, you will need to setup the provider, and for that we have to retrieve information from the cluster using data sources.
 
 > Note:<br>
-For that very reason we have to use a layering/staged approach. First provision the base infrastructure (network and all plumbing), then provision cluster, and only then install vault injector. 
+For that very reason we have to use a layering/staged approach as described in [3-](#3-c-key-settings).
 
 ### Setup kubernetes & helm providers
 
@@ -286,7 +297,7 @@ provider "helm" {
 ```
 
 ### Prepare charts `values` in a json
-yeah... You know me, I like to play with json and locals to manipulate configuration input. You can do all that with hcl and `map(object)` type. It's actually how the aks module above is using.<br>
+yeah... You know me, I like to play with json and locals to manipulate configuration input. If you prefer you can do all that with hcl and `map(object)` type variable (which enables you to leverage variable validation). It's actually how the aks module above is using.<br>
 Anyway.<br>
 
 here is the `charts.json` I use. 
@@ -422,21 +433,21 @@ resource "kubernetes_secret_v1" "vault" {
 ```
 
 > About Kubernetes secrets:<br>
-Manually creating a service account token, creates a long lived token. In recent versions, when assigning a service account to a pod, a short lived token is generated and projected to the default mount. It allows for shorter lived token and cleaner lifecycle management.<br>
+Manually creating a *service account token*, creates a long lived token. In recent versions, when assigning a *service account* to a pod, a short lived token is generated and projected to the default mount. It allows for shorter lived token and cleaner lifecycle management.<br>
 We often read that kubernetes secrets are not secure. And that is true. However this particular secret does not provide too much access (review issuer) and is in vault's namespace. If some threat actor has already access to resources in your vault namespace, a mere reviewer token is the least of your problems...
 
 
-Fine, we have setup the kubernetes side.<br>
+Fine, we have setup on the kubernetes side.<br>
 We can go on with Vault. We'll keep using terraform for that because I'm a fanboy :)
 
 We have to create:
 - authentication method
 - authentication role
 
-The role is where we need to feed information from previous tasks, such as cluster confg (cert, host, oidc issuer url) and the infamous secret, the service account token.
+The role is where we need to feed information from previous tasks, such as cluster config (cert, host, oidc issuer url) and the infamous secret, the service account token.
 
-As explained before, we rely on a manually created token because we want to feed it to terraform. We could just let the TokenRequest API, but since it is bound to the lifecycle of the Pod how would we update vault in case of the injector being redeployed?
-More about the service account tokens [here](https://kubernetes.io/docs/concepts/configuration/secret/)
+As explained before, we rely on a manually created token because we want to feed it to terraform. We could just let the TokenRequest API, but since it is bound to the lifecycle of the Pod, how would we update vault in case of the injector being recreated for some reason?
+More about the service account tokens [here](https://kubernetes.io/docs/concepts/configuration/secret/).
 
 ```hcl
 resource "vault_auth_backend" "kubernetes" {
@@ -456,13 +467,13 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
 }
 ```
 
-OK.
-Let's take a small break.
+OK.<br>
+Let's take a small break.<br>
 We now have a working kubernetes cluster, an external vault cluster with kubernetes auth method enabled and mounted on `aks/`. <br>
-Prior to that, we enabled the Kvv2 secret engine and registered some secret(s) in it. We also prepped a policy for our test workload: a simple busybox.
+Prior to that, we enabled the Kvv2 secret engine and registered some secret(s) in it. We also prepped a policy for our test workload: the busybox.
 
-If you have finnished digesting all this information, we can go on and prepare the configuration for our busybox.<br>
-Below is the creation of namespace and service account for it. You could just do it in your yaml manifest actually, but since we want to setup vault role for the same workload, it's convenient to do it all in terraform
+If you have finished digesting all this information, we can go on and prepare the configuration for our busybox.<br>
+Below is the creation of namespace and service account for it. You could just do it in your yaml manifest actually, but since we want to setup vault role for the same workload, it's convenient to do it all in terraform. And you know... fanboy ^^
 
 ```hcl
 resource "kubernetes_namespace_v1" "busybox" {
@@ -479,7 +490,7 @@ resource "kubernetes_service_account_v1" "busybox" {
 }
 ```
 See. Stupid Simple!<br>
-And it will not be missed that we don't need to manually create a service account token. As explained, the busybox will have its token automatically created and mounted in the projected volume.
+And you will notice that we don't need to manually create a service account token. As explained, the busybox will have its token automatically created and mounted in the projected volume.
 
 The final step is to create the backend role:
 ```hcl
@@ -493,8 +504,13 @@ resource "vault_kubernetes_auth_backend_role" "busybox" {
 }
 ```
 
-Just a quick review. We jave some interesing required attributes for this particular terraform resource: `bound_service_account_names` and `bound_service_account_namespaces`.<br>
-Of course you also have to set a name and backend path, but what is interesting here, ist that, by design, the role forces you to bound a service account and a namespace. i.e. roles are natively scoped. And the final touch is the `token_policies` where your attach all the policies you want. We just add the `busybox` policy created at the begining, in addition to the `default` (because for this lab, I'm lazy and don't want to copy all the token related permission required, I just attach the default policy).
+Just a quick review.<br> 
+We have some interesting required attributes for this particular terraform resource: 
+- `bound_service_account_names` <br>
+and 
+- `bound_service_account_namespaces`.
+
+You also have to set a *name* and *backend path*, but what is interesting here, ist that, by design, the role forces you to bound a service account and a namespace. i.e. roles are natively scoped. And the final touch is the `token_policies` where your attach all the policies you want. We just add the `busybox` policy created at the begining, in addition to the `default` (because for this lab, I'm lazy and don't want to copy all the token related permission required, I just attach the default policy).
 
 ## 5-d Inject a secret
 We are getting there.
@@ -574,13 +590,14 @@ Let's "enter" the container to see what was done `kubectl exec --stdin --tty bus
 Defaulted container "busybox" out of: busybox, vault-agent, vault-agent-init (init)
 / 
 ```
-So thanks to the injector, an init container `vault-agent-init` was created to authenticated with vault and retrieve the vault token, then the container `vault-agen` is started with the token from the init container, and it renders the secret file, then the main container `busybox` is started. 
+So thanks to the injector, an init container `vault-agent-init` was created to authenticate with Vault and retrieve the *vault token*, then the container `vault-agent` is started with the token from the init container, and it renders the secret file, then the main container `busybox` is started. 
 
 You can check the content of the rendered file, and voila!
 ```bash
 / cat /vault/secrets/devops_token
 token value stored on path secret/devops is pat/ 
 ```
+if you go back to [5-a](#5-a-prep-vault), you can confirm the secret for `secret/devops` is indeed `token=pat`
 
 # 6- Troubleshoot
 Because sometimes there is a gap between my working lab and the blog (typo, new versions, etc), it's always good to have some tools to help with trouble shooting.
@@ -599,10 +616,12 @@ Code: 403. Errors:
 
 # 7- Conclusion
 There you have it.<br>
-It was quite longer than I expected, but I think everything you need is there. I knnow it only fits a certain scenario, when you have an external cluster, but I believe this is how it should be.<br>
-Above all, I wanted to step out of all the only documentation and tutorials and enable you to understand better what are the components and how they work together.<br>
-The really neat thing is that you don't need to use kubernetes secret, you can fetch secrets from vault, you don't need to manage service account token, you just need a matching namespace and service account name in a role, and the projected sa token will be authenticated and authorized. <br>
-All of that while your app is perfectly unaware of vault. This makes it a good solution if you're deploying vault and want your kubernetes teams to adopt the solution. THey are just a few annotations away to get their secrets from vault. This becomes especially interesting when using dynamic secrets.<br>
+It was quite longer than I expected, but I think everything you need is there. I know it only fits a certain scenario, where you have an external cluster, but I believe this is best pattern.
+
+Above all, I wanted to step out of all the documentation and tutorials, and enable you to understand better what the components are, and how they work together.<br>
+The really neat thing is that you can fetch secrets from vault, you don't need to manage service account token, you just need a matching namespace and service account name in a role, and the projected sa token will be authenticated and authorized. <br>
+All of that while your app is perfectly unaware of vault. <br>
+This makes it a good solution if you're deploying vault and want your kubernetes users to adopt the solution. They are just a few annotations away to get their secrets from vault. This becomes especially interesting when using dynamic secrets.<br>
 The downside however is the computing cost. You may already rely heavily on the sidecar pattern, this will add more compute stress to your cluster if you have a large amount of pods running.
 
 As usual I hope you enjoyed it and learned something.
