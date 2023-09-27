@@ -170,7 +170,7 @@ Now the team can access the paramaters in the form of a `json` file, and it will
 And here is a recap of the situation. Not perfect, but pretty neat considering the constraints:
 
 <p align="center">
-  <img src="/pictures/blog-tf-json-logicapp.drawio" />
+  <img src="/pictures/blog-tf-json-logicapp.drawio.png" />
 </p>
 
 
@@ -182,7 +182,7 @@ We repatriated the json(s) into their respective repositories once we had people
 And so the workflow slightly changed (streamlined):
 
 <p align="center">
-  <img src="/pictures/blog-tf-json-from-git.drawio" />
+  <img src="/pictures/blog-tf-json-from-git.drawio.png" />
 </p>
 
 But as usual, I wanted more.<br>
