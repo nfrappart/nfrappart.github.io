@@ -55,7 +55,7 @@ Sure, when you click it, you have access to all tasks within the stage (within t
   <img src="/pictures/pipeline-stage-detail.png" />
 </p>
 
-Basically, to get a visual representation of the workflow, I has to split each terraform stage into, well an azure pipeline stage. Now that I write it down, I feel kinda stupid not realising it from the get go. Anyway. I left aside the `job` as I didn't really need it. I would run only one `job` per `stage`, and multiple `tasks` per job.
+Basically, to get a visual representation of the workflow, I had to split each terraform stage into, well an azure pipeline stage. Now that I write it down, I feel kinda stupid not realising it from the get go. Anyway. I left aside the `job` as I didn't really need it. I would run only one `job` per `stage`, and multiple `tasks` per job.
 
 However...
 
