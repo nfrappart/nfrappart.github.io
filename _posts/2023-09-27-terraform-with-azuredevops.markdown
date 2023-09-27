@@ -77,7 +77,7 @@ Hashicorp maintains a humongous registry, hosting providers as well as modules. 
 
 So without Terraform Cloud (a.k.a TFC) nor Terraform Enterprise (a.k.a TFE), how to manage reusable modules?
 
-My take, is to create a dedicated Azure Devops Project, then create a repository per modules. This way, you can version your modules individually using tags in the `source` attribute when calling a module. Some would argue it's better/easier to have one repo with all your module, I'd say, everyone is entitle to its own opinion :p
+My take, is to create a dedicated Azure Devops Project, then create a repository per module. This way, you can version your modules individually using tags in the `source` attribute when calling a module. Some would argue it's better/easier to have one repo with all your module, I'd say, everyone is entitle to his own opinion :p
 
 Now, by doing so, instead of keeping a copy of my modules in each terraform project, and dealing with the pain to update them everywhere, I can reference a remote module with a url instead of a local path, and manage update by just changing tag where needed.
 
