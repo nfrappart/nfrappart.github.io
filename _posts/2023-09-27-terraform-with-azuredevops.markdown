@@ -55,13 +55,13 @@ Sure, when you click it, you have access to all tasks within the stage (within t
   <img src="/pictures/pipeline-stage-detail.png" />
 </p>
 
-Basically, to get a visual representation of the workflow, I have to split each terraform stage into, well an azure pipeline stage. Now that I write it down, I feel kinda stupid not realising it from the get go. Anyway. I left aside the `job` as I don't really need it. I will run only one `job` per `stage`, and multiple `tasks` per job.
+Basically, to get a visual representation of the workflow, I has to split each terraform stage into, well an azure pipeline stage. Now that I write it down, I feel kinda stupid not realising it from the get go. Anyway. I left aside the `job` as I didn't really need it. I would run only one `job` per `stage`, and multiple `tasks` per job.
 
 However...
 
 It failed miserably leaving me wondering why. I mean, I could have read the documentation, surely it's written somewhere... As it happens, while tasks in a same job are run in the same shell, jobs are not (they can actually be run in parallel on multiple agents), and so variables are not pass from stage to stage. Talk about an important detail...
 
-So back at it with proper env variable setup repeated on each stage (we'll get into more details on the following article) and here we are:
+So back at it with proper env variables setup, repeated on each stage (we'll get into more details on the following article) and here we are:
 
 <p align="center">
   <img src="/pictures/pipeline-stage-validateplanapply.png" />
