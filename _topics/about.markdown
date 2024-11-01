@@ -5,15 +5,7 @@ description: who am I ?
 #permalink: /about/
 ---
 
-Hi,
-I'm Nate. <br>
-I've been working in the IT for the last 2 decades, and so much have changed during that time. I'm some sort of a "Jack of all trades, master of none", having hands on experience with Cisco Catalyst, ISR and ASA, VMware vSphere, Windows Server, Linux, NetApp, Fortigate, Azure, Terraform, Vault, etc.
-
-I co-founded Ryzhom, which is a company specializing in Cloud, more specifically Azure and Hashicorp Stack. Of course we also follow the global trend around containers and CNCF's Kubernetes, altough I can't say we're quite there yet. <br>
-Like everyone in this industry, I show off a few certification badges, though it doesn't mean much except I can score enough on MCQ ^_^. Check below to know which ones. Hopefully the list will grow over time.
-
-Most of my current job is terraforming Azure for customers (hence the name of the Blog) and pushing other Hashicorp products, such as Vault and Consul to bring added value. Obviously I pass half as much time writing yaml (azure pipelines, k8s manifest or even ansible playbooks).
-These are the themes you can expect to see on this blog.
+I’m Nathanael (Nate) Frappart, a Cloud Infrastructure Architect and co-founder of Ryzhom. Over the past five years, I’ve specialized in Azure and HashiCorp technologies, focusing on scalable, secure cloud infrastructure and automation. As a HashiCorp Ambassador (2023-2024) and co-organizer of the HashiCorp User Group in Paris, I actively contribute to the tech community, sharing insights and experiences. I’m also an occasional conference speaker, driven by a passion for knowledge sharing and innovation in cloud solutions.
 
 Here is the link to my [Linkedin Profile](https://www.linkedin.com/in/{{ site.linkedin_username }}/)
 
