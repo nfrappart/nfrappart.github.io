@@ -12,7 +12,7 @@ tags: azure terraform devops
 - [Skills](#3--know-Your-Audience---skills)
 - [Ownership](#4--Organization-and-Governance---ownership)
 - [AKS Automatic](#5--AKS-Automatic---Microsoft-may-have-proven-me-right)
-- [Conclusion](#8--Conclusion)
+- [Conclusion](#6--Conclusion)
 
 # 1- Introduction
 
