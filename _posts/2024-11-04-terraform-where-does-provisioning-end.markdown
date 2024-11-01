@@ -8,10 +8,10 @@ tags: azure terraform devops
 
 ## Table of Content
 - [Introduction](#1--introduction)
-- [Scope](#2--Infrastructure-VS-Application)
-- [Skills](#3--know-Your-Audience)
-- [Ownership](#4--Organization-and-Governance)
-- [AKS Automatic](#5--AKS-Automatic:-Microsoft-may-have-proven-me-right)
+- [Scope](#2--Infrastructure-VS-Application:-scope)
+- [Skills](#3--know-Your-Audience:-skills)
+- [Ownership](#4--Organization-and-Governance:-ownership)
+- [AKS-Automatic](#5--AKS-Automatic:-Microsoft-may-have-proven-me-right)
 - [Conclusion](#8--Conclusion)
 
 # 1- Introduction
