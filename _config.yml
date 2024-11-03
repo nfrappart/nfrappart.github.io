@@ -30,7 +30,7 @@ github_username:  nfrappart
 # Build settings
 # theme: minima
 theme: jekyll-theme-cayman
-color-scheme: dark
+color-scheme: "dark"
 plugins:
   - jekyll-feed
 
