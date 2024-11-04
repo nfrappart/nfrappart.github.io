@@ -543,7 +543,7 @@ X-Forwarded-Server: 025d50f96593
 X-Real-Ip: 10.7.0.1
 ```
 
-We get asnwers from different instances
+We get answers from different instances as expected.
 
 # 7- Conclusion
 We have setup a docker network and Traefik container to handle loadbalancing and certificates lifecycles for any new service we'd want to run in our docker environment. We get to play with everything using TLS certificates, accessing services using FQDN. Thanks to Traefik and docker provisioner, we only have to add a few labels to any new service we want to add and Traefik will handle everything automatically for us.
