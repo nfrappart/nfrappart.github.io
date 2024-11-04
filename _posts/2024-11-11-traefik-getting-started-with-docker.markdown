@@ -135,10 +135,6 @@ services:
       # Router for http
       - "traefik.http.routers.traefik_http.entrypoints=http"
       - "traefik.http.routers.traefik_http.rule=Host(`traefik-dash.docker.example.com`)"
-      # Redirect http to https
-      - "traefik.http.middlewares.traefik_https_redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-forward-Proto=https"
-      - "traefik.http.routers.traefik_http.middlewares=traefik_https_redirect"
       # Router for https
       - "traefik.http.routers.traefik_https.entrypoints=https"
       - "traefik.http.routers.traefik_https.rule=Host(`traefik-dash.docker.example.com`)"
