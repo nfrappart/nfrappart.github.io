@@ -2,7 +2,7 @@
 layout: post
 title:  "Traefik: getting started with docker"
 description: Discover the power of traefik for local docker lab
-date:   2024-11-11 09:00:00 +0100
+date:   2024-11-11 07:00:00 +0100
 tags: traefik docker devops
 ---
 
