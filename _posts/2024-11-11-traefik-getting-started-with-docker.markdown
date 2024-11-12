@@ -237,7 +237,7 @@ labels:
 ```
 
 I have inserted some meaningful comments to help remembering what does what. The first argument clearly states to enable traefik.  Then we setup an http router named traefik_http. And we setup its entrypoint to `http`.  Entrypoints are setup in `traefik.yaml` (see [#4.3](#4.3--Traefik-Proxy-traefik.yaml-%28or-.toml%29-configuration-file)). We also configure a global http to https redirection in the config file. Next label is used to set the matching host for the dashboard, with the fqdn we'll be requesting to access the dashboard. 
-The final part is the settings for the https router. As for http, we set the entrypoint to the corresponding port configured in `traefik.yaml`, we set the same matching host as for http, then enable TLS. Because we enabled TLS we want to let Traefik andle the certificates for us and this is where we tell it to use a resolver named `azure` (again, we'll get to see the related configuration in `traefik.yaml`). The `domain` lable basically tells Traefik the name we want in our certificate (note: there is an option for SANS). The `api@internal` service is the dashboard and API access.
+The final part is the settings for the https router. As for http, we set the entrypoint to the corresponding port configured in `traefik.yaml`, we set the same matching host as for http, then enable TLS. Because we enabled TLS we want to let Traefik andle the certificates for us and this is where we tell it to use a resolver named `azure` (again, we'll get to see the related configuration in `traefik.yaml`). The `domain` label basically tells Traefik the name we want in our certificate (note: there is an option for SANS). The `api@internal` service is the dashboard and API access.
 
 
 Below is our latest section.
