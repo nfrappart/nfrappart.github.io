@@ -61,12 +61,12 @@ To create the docker network, a single command will do it for you: `docker netwo
 # 3- Traefik
 Now, let's take a step back and introduce Traefik, or rather Traefik Proxy I should say.
 Traefik Labs is developping multiple product around what we can call "ingress" management, in the broad sense of the term (not specifically Ingress as in Kubernetes).
-Traefik proxy is open source and is what we will use here, but Traefik Labs also has Traefik Hub (API Gateway/Management) and Traefik Enterprise, in its portfolio. Traefik Proxy is free, but depending on your needs, other version should be used. Some will of course induce additional costs. But as with anything in the OSS world, I strongly encourage to assess your need and use the more refined paid versions this is what fits your needs. Paying for the full product when your business or your client benefits from it is the best way to support this open source ecosystem, so that we can still use awesome products for free for personal or small businesses use cases.
+Traefik proxy is open source and is what we will use here, but Traefik Labs also has Traefik Hub (API Gateway/Management) and Traefik Enterprise, in its portfolio. Traefik Proxy is free, but depending on your needs, other version should be used. Some will of course induce additional costs. But as with anything in the OSS world, I strongly encourage to assess your need and use the more refined paid versions if this is what fits your needs. Paying for the full product when your business or your client benefits from it is the best way to support this open source ecosystem, so that we can still use awesome products for free for personal or small businesses use cases.
 
 Here we will use Traefik locally with Docker, but you can use it as an Ingress Controller alternative if you're a Kubernetes user. There is also a very great integration with HashiCorp's scheduler: Nomad.
 
 # 4- Run Traefik locally with Docker
-We want to use Traefik to expose our services running in our docker host. The purpose here is to easiily spin-up services on a local machine, while still having SSL and mock a real world infrastructure where your service is hsoted behind some kind of load balancer.
+We want to use Traefik to expose our services running in our docker host. The purpose here is to easiily spin-up services on a local machine, while still having SSL and mock a real world infrastructure where your service is hosted behind some kind of load balancer.
 
 So first, ensure that you have the requirements on your machine, as indicated in the [# 2- Prerequisites](#2--Prerequisites) section.
 You will then have to setup multiple files:
@@ -94,7 +94,7 @@ docker
 
 ```
 
-In the example above, the `traefik` folder we host every file related to traefik docker instance, either docker related config or traefik related config. The as an example you can see 2 other subfolders un `docker` folderm name `serviceA` and `serviceB` where you'd store config related to hypothetical other docker hosted services.
+In the example above, the `traefik` folder contains every file related to traefik docker instance, either docker related config or traefik related config. Using the same logic, you can see 2 other subfolders example, named `serviceA` and `serviceB`, where you'd store config related to these 2 hypothetical services.
 
 ## 4.2- Docker Compose configuration
 Now that we've cleared the basic suggested folder organization, let's jump into docker configuration. As said before, we use docker compose to facilitate configuration.
@@ -162,7 +162,7 @@ services:
 (...)
 ```
 
-First we decalre a service named traefik, which will actually the only service managed by this compose file. As usual, we specify the image and version to pull and give the container a name with the `container_name` attribute. You will notice the `networks` section where we specify the `traefik` docker network that was created beforehand (refer to [2- Prerequisites](#2--Prerequisites) section).
+First we declare a service named traefik, which will actually the only service managed by this compose file. As usual, we specify the image and version to pull and give the container a name with the `container_name` attribute. You will notice the `networks` section where we specify the `traefik` docker network that was created beforehand (refer to [2- Prerequisites](#2--Prerequisites) section).
 
 Then in the `ports` section we commented out the 8080 which is the insecure port for the dashboard when not using TLS. We kept the port 80 but as you will see below, we use some Traefik label to redirect to https.
 
@@ -212,7 +212,7 @@ In the `volumes` section we will find some interesting mount points:
 
 First the usual docker socket required to access the docker API. I know, I know, this is unsecure, but don't be too hung up on this, I should remind you we're building a local testing/lab environment. :)
 To be fair, Traefik Labs team provide some [alternatives](https://doc.traefik.io/traefik/providers/docker/#docker-api-access) for more secure approach as the shortcomings of exposing docker socket are pretty well documented.
-Next we mount the `traefik.yaml` file. As you can see I store it into a `config` folder. This not necessary, but considering additional configurations can/should be add with additional yaml files, rather than having a messy `traefik` folder I decided to create a subfolder specifically for config files. `traefik.yaml` will be further explaoined in [#4.3](#4.3--Traefik-Proxy-traefik.yaml-%28or-.toml%29-configuration-file)
+Next we mount the `traefik.yaml` file. As you can see I store it into a `config` folder. This is not necessary, but considering additional configurations can/should be added with additional yaml files, rather than having a messy `traefik` folder I decided to create a subfolder specifically for config files. `traefik.yaml` will be further explained in [#4.3](#4.3--Traefik-Proxy-traefik.yaml-%28or-.toml%29-configuration-file)
 Then the `log` directory is here for that: logs. This comes in handy to have somewhere to look for your Traefik logs if you ever need troubleshooting.
 Last is acme.json which is where Traefik will store the certificates and keys. You can just mount an empty file and it will populate it as it generates certificates for your services.
 
