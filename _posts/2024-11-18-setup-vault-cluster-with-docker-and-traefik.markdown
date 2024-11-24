@@ -2,7 +2,7 @@
 layout: post
 title:  "Local Vault cluster with Traefik"
 description: The perfect setup to prepare Vault certifications
-date:   2024-11-18 09:00:00 +0100
+date:   2024-11-24 09:00:00 +0100
 tags: traefik docker devops vault
 ---
 
