@@ -6,3 +6,4 @@ vendor
 .DS_Store
 DRAFT*.*
 *.drawio.bkp
+Gemfile.lock
